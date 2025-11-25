@@ -1,0 +1,5 @@
+{
+  "name": "Smart Face Template Generator",
+  "description": "A React application allowing admins to create image templates with defined face regions, and users to seamlessly insert their own photos using client-side image processing.",
+  "requestFramePermissions": []
+}
