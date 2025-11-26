@@ -26,8 +26,13 @@ const TemplateView: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      const t = getTemplateById(id);
-      if (t) setTemplate(t);
+      (async () => {
+        const t = await getTemplateById(id);
+        if (t) {
+          console.log('Loaded template:', t);
+          setTemplate(t);
+        }
+      })();
     }
   }, [id]);
 
@@ -52,11 +57,17 @@ const TemplateView: React.FC = () => {
   const handleProcess = async () => {
     if (!template || !userImage) return;
     try {
+      console.log('Processing image with:', {
+        imageUrl: template.imageUrl,
+        userImage,
+        faceRect: template.faceRect,
+        options
+      });
       const result = await mergeImages(template.imageUrl, userImage, template.faceRect, options);
       setResultImage(result);
     } catch (err) {
-      console.error(err);
-      alert('Error processing image');
+      console.error('Error processing image:', err);
+      alert('Error processing image: ' + (err?.message || err));
     }
   };
 
@@ -165,7 +176,10 @@ const TemplateView: React.FC = () => {
              {resultImage ? (
                <img src={resultImage} alt="Result" className="max-w-full max-h-[70vh] rounded shadow-sm" />
              ) : template.imageUrl ? (
-                <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[60vh] opacity-50 blur-sm rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <>
+                  {console.log('Preview image URL:', template.imageUrl)}
+                  <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[60vh] opacity-50 blur-sm rounded" onError={(e) => { console.error('Image failed to load:', template.imageUrl); e.currentTarget.style.display = 'none'; }} />
+                </>
              ) : (
                 <div className="text-center">
                   <span className="bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-md">

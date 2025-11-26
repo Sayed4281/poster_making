@@ -95,8 +95,8 @@ const TemplateEditor: React.FC = () => {
       alert('Please enter a template name.');
       return;
     }
-    if (!imageFile || !imageFile.startsWith('https://res.cloudinary.com/')) {
-      alert('Image not uploaded or invalid Cloudinary URL. Please upload again.');
+    if (!imageFile || imageFile === 'undefined' || !imageFile.startsWith('https://res.cloudinary.com/')) {
+      alert('Image not uploaded, invalid, or undefined. Please upload again and wait for the Cloudinary URL.');
       return;
     }
     // Generate UUID with fallback
