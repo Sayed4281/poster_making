@@ -1,45 +1,28 @@
 import { Template, Rect } from '../types';
-import { LOCAL_STORAGE_KEY } from '../constants';
+import { db } from './firebase';
+import { collection, getDocs, getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
-// Helper to get all templates
-export const getTemplates = (): Template[] => {
-  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+// Helper to get all templates from Firestore
+export const getTemplates = async (): Promise<Template[]> => {
+  const snapshot = await getDocs(collection(db, 'templates'));
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Template));
 };
 
-// Helper to get a single template
-export const getTemplateById = (id: string): Template | undefined => {
-  const templates = getTemplates();
-  return templates.find((t) => t.id === id);
+// Helper to get a single template from Firestore
+export const getTemplateById = async (id: string): Promise<Template | undefined> => {
+  const docRef = doc(db, 'templates', id);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? ({ id: docSnap.id, ...docSnap.data() } as Template) : undefined;
 };
 
-// Helper to save a template
-export const saveTemplate = (template: Template): void => {
-  try {
-    const templates = getTemplates();
-    // Check if update or new
-    const index = templates.findIndex((t) => t.id === template.id);
-    if (index >= 0) {
-      templates[index] = template;
-    } else {
-      templates.push(template);
-    }
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(templates));
-  } catch (e: any) {
-    console.error("Storage save failed:", e);
-    // Specifically catch QuotaExceededError
-    if (e.name === 'QuotaExceededError' || e.code === 22) {
-       throw new Error("Storage is full. Please delete old templates or upload a smaller image.");
-    }
-    throw new Error("Failed to save template.");
-  }
+// Helper to save a template to Firestore
+export const saveTemplate = async (template: Template): Promise<void> => {
+  await setDoc(doc(db, 'templates', template.id), template);
 };
 
-// Helper to delete a template
-export const deleteTemplate = (id: string): void => {
-  const templates = getTemplates();
-  const filtered = templates.filter((t) => t.id !== id);
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtered));
+// Helper to delete a template from Firestore
+export const deleteTemplate = async (id: string): Promise<void> => {
+  await deleteDoc(doc(db, 'templates', id));
 };
 
 // Convert File to Base64

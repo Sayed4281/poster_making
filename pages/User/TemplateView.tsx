@@ -164,16 +164,13 @@ const TemplateView: React.FC = () => {
           <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-2 relative min-h-[500px] flex items-center justify-center checkerboard">
              {resultImage ? (
                <img src={resultImage} alt="Result" className="max-w-full max-h-[70vh] rounded shadow-sm" />
+             ) : template.imageUrl ? (
+                <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[60vh] opacity-50 blur-sm rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
              ) : (
                 <div className="text-center">
-                  <div className="relative inline-block">
-                    <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[60vh] opacity-50 blur-sm rounded" />
-                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-md">
-                           Waiting for upload...
-                        </span>
-                     </div>
-                  </div>
+                  <span className="bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-md">
+                    Waiting for upload...
+                  </span>
                 </div>
              )}
              

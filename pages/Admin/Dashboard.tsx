@@ -6,19 +6,27 @@ import Button from '../../components/Button';
 
 const Dashboard: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadTemplates();
   }, []);
 
-  const loadTemplates = () => {
-    setTemplates(getTemplates().reverse()); // Newest first
+  const loadTemplates = async () => {
+    setLoading(true);
+    try {
+      const data = await getTemplates();
+      setTemplates(data.reverse()); // Newest first
+    } catch (e) {
+      console.error('Failed to load templates:', e);
+    }
+    setLoading(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this template?')) {
-      deleteTemplate(id);
+      await deleteTemplate(id);
       loadTemplates();
     }
   };
@@ -56,7 +64,12 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {templates.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+            <div className="text-slate-400 mb-4 text-5xl"><i className="fas fa-spinner fa-spin"></i></div>
+            <h3 className="text-xl font-medium text-slate-700">Loading templates...</h3>
+          </div>
+        ) : templates.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
             <div className="text-slate-400 mb-4 text-5xl"><i className="fas fa-images"></i></div>
             <h3 className="text-xl font-medium text-slate-700">No templates yet</h3>

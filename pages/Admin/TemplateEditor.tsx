@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveTemplate, fileToBase64 } from '../../services/storageService';
+import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 import { generateTemplateImage } from '../../services/geminiService';
 import { detectFace } from '../../services/faceDetectionService';
 import { compressImage } from '../../utils/canvasUtils';
@@ -54,13 +55,19 @@ const TemplateEditor: React.FC = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setIsLoading(true);
+      setLoadingMessage('Uploading image to Cloudinary...');
       try {
-        const base64 = await fileToBase64(e.target.files[0]);
-        await processNewImage(base64);
+        // Upload to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(e.target.files[0]);
+        setImageFile(cloudinaryUrl);
+        // Optionally, you can process the image further if needed
+        setStep(2);
       } catch (err) {
         console.error(err);
-        alert('Error reading file');
+        alert('Error uploading image');
+      } finally {
         setIsLoading(false);
+        setLoadingMessage('');
       }
     }
   };
@@ -83,16 +90,15 @@ const TemplateEditor: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       alert('Please enter a template name.');
       return;
     }
-    if (!imageFile) {
-      alert('Missing template image.');
+    if (!imageFile || !imageFile.startsWith('https://res.cloudinary.com/')) {
+      alert('Image not uploaded or invalid Cloudinary URL. Please upload again.');
       return;
     }
-    
     // Generate UUID with fallback
     let id = '';
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -110,7 +116,7 @@ const TemplateEditor: React.FC = () => {
     };
 
     try {
-      saveTemplate(newTemplate);
+      await saveTemplate(newTemplate);
       navigate('/admin/dashboard');
     } catch (e: any) {
       alert(e.message || "Failed to save template");
