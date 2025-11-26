@@ -61,9 +61,6 @@ const Dashboard: React.FC = () => {
             <div className="text-slate-400 mb-4 text-5xl"><i className="fas fa-images"></i></div>
             <h3 className="text-xl font-medium text-slate-700">No templates yet</h3>
             <p className="text-slate-500 mb-6">Create your first template to get started.</p>
-            <Link to="/admin/add">
-              <Button variant="primary">Create Template</Button>
-            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
