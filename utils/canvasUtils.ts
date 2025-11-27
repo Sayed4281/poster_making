@@ -25,11 +25,11 @@ export const compressImage = (base64Str: string, maxWidth = 1024, quality = 0.8)
 
       if (width > maxWidth || height > maxWidth) {
         if (width > height) {
-           height = (height * maxWidth) / width;
-           width = maxWidth;
+          height = (height * maxWidth) / width;
+          width = maxWidth;
         } else {
-           width = (width * maxWidth) / height;
-           height = maxWidth;
+          width = (width * maxWidth) / height;
+          height = maxWidth;
         }
       }
 
@@ -119,14 +119,38 @@ export const mergeImages = async (
   // Simple approach: Stretch to fit (User acts as the cropper in the UI)
   ctx.drawImage(
     faceCanvas,
-    (maxDim - faceImg.width)/2, (maxDim - faceImg.height)/2, faceImg.width, faceImg.height, // Source crop (rough center)
+    (maxDim - faceImg.width) / 2, (maxDim - faceImg.height) / 2, faceImg.width, faceImg.height, // Source crop (rough center)
     destX, destY, destW, destH // Dest
   );
-  
+
   // Restore state (removes clip and filter)
   ctx.restore();
 
   // Optional: Feathering edges could be added here with a globalCompositeOperation 'destination-in' gradient
+
+  return canvas.toDataURL('image/png');
+};
+
+/**
+ * Crops an image based on the provided rectangle (percentages).
+ */
+export const cropImage = async (src: string, cropRect: Rect): Promise<string> => {
+  const img = await loadImage(src);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('No context');
+
+  // Calculate pixel values
+  const sx = (cropRect.x / 100) * img.width;
+  const sy = (cropRect.y / 100) * img.height;
+  const sWidth = (cropRect.width / 100) * img.width;
+  const sHeight = (cropRect.height / 100) * img.height;
+
+  // Set canvas size to the cropped size
+  canvas.width = sWidth;
+  canvas.height = sHeight;
+
+  ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
 
   return canvas.toDataURL('image/png');
 };

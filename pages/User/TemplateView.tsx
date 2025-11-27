@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTemplateById, getTemplateByCustomId, fileToBase64 } from '../../services/storageService';
-import { mergeImages } from '../../utils/canvasUtils';
-import { Template, ProcessingOptions } from '../../types';
+import { mergeImages, cropImage } from '../../utils/canvasUtils';
+import { Template, ProcessingOptions, Rect } from '../../types';
 import { AUTH_STORAGE_KEY } from '../../constants';
 import Button from '../../components/Button';
+import FaceSelector from '../../components/FaceSelector';
 
 const TemplateView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +14,12 @@ const TemplateView: React.FC = () => {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
+  // Cropping State
+  const [isCropping, setIsCropping] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [cropRect, setCropRect] = useState<Rect>({ x: 10, y: 10, width: 80, height: 80, shape: 'rect' });
+
   // Image Adjustment State
   const [options, setOptions] = useState<ProcessingOptions>({
     brightness: 0,
@@ -41,19 +47,34 @@ const TemplateView: React.FC = () => {
 
   // Real-time update of preview when options change
   useEffect(() => {
-    if (template && userImage) {
+    if (template && userImage && !isCropping) {
       const timer = setTimeout(() => {
         handleProcess();
       }, 100); // Debounce
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, userImage]);
+  }, [options, userImage, isCropping]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const base64 = await fileToBase64(e.target.files[0]);
-      setUserImage(base64);
+      setOriginalImage(base64);
+      setIsCropping(true);
+      // Reset crop rect to a reasonable default
+      setCropRect({ x: 10, y: 10, width: 80, height: 80, shape: 'rect' });
+    }
+  };
+
+  const handleCropConfirm = async () => {
+    if (!originalImage) return;
+    try {
+      const cropped = await cropImage(originalImage, cropRect);
+      setUserImage(cropped);
+      setIsCropping(false);
+    } catch (e) {
+      console.error("Crop failed", e);
+      alert("Failed to crop image");
     }
   };
 
@@ -85,115 +106,160 @@ const TemplateView: React.FC = () => {
 
   if (!template) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500 flex-col gap-4">
-        <h2 className="text-2xl font-semibold">Loading Template...</h2>
-          {/* Dashboard navigation removed */}
+      <div className="min-h-screen flex items-center justify-center flex-col gap-6">
+        <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <h2 className="text-2xl font-semibold text-white">Loading Template...</h2>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 py-10 px-4">
-      {/* Header Navigation */}
-      <div className="max-w-5xl mx-auto mb-6 flex items-center justify-between">
-        <div className="font-bold text-slate-400 text-sm tracking-wide uppercase">Smart Template Gen</div>
+    <div className="min-h-screen py-10 px-4 relative">
+      {/* Background Elements */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-600/10 rounded-full blur-3xl -translate-x-1/3 translate-y-1/3"></div>
       </div>
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+      {/* Header Navigation */}
+      <div className="max-w-6xl mx-auto mb-8 flex items-center justify-between">
+        <div className="font-bold text-indigo-400 text-sm tracking-widest uppercase flex items-center gap-2">
+          <i className="fas fa-bolt"></i> Smart Template Gen
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
         {/* Left Column: Controls */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
-            <h1 className="text-xl font-bold text-slate-800 mb-2">{template.name}</h1>
-            <p className="text-sm text-slate-500 mb-6">Upload your photo to generate.</p>
-            
-            <label className="block w-full cursor-pointer bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-700 rounded-lg p-4 text-center transition mb-6">
-              <span className="font-medium"><i className="fas fa-camera mr-2"></i> Upload Your Face</span>
+        <div className="lg:col-span-1 space-y-6 animate-fade-in">
+          <div className="glass-panel rounded-2xl p-6 border border-slate-700/50">
+            <h1 className="text-2xl font-bold text-white mb-2">{template.name}</h1>
+            <p className="text-sm text-slate-400 mb-8">Upload your photo to generate your personalized poster.</p>
+
+            <label className="block w-full cursor-pointer bg-slate-800 border-2 border-dashed border-slate-600 hover:border-indigo-500 hover:bg-slate-700/50 text-indigo-300 rounded-xl p-8 text-center transition-all group mb-8">
+              <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <i className="fas fa-camera text-xl text-indigo-400"></i>
+              </div>
+              <span className="font-medium block text-white">Upload Your Face</span>
+              <span className="text-xs text-slate-500 mt-1 block">JPG or PNG</span>
               <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
             </label>
 
-            {userImage && (
-              <div className="space-y-4 border-t border-slate-100 pt-6">
-                <h3 className="font-medium text-slate-700 text-sm">Adjustments</h3>
-                
-                <div>
-                  <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Rotation</span>
-                    <span>{options.rotation}°</span>
-                  </div>
-                  <input 
-                    type="range" min="-180" max="180" 
-                    value={options.rotation} 
-                    onChange={(e) => setOptions({...options, rotation: Number(e.target.value)})}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                  />
+            {userImage && !isCropping && (
+              <div className="space-y-6 border-t border-slate-700/50 pt-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-medium text-white text-sm flex items-center gap-2">
+                    <i className="fas fa-sliders-h text-indigo-400"></i> Adjustments
+                  </h3>
+                  <button onClick={() => setIsCropping(true)} className="text-xs text-indigo-400 hover:text-indigo-300 underline">
+                    Re-crop Image
+                  </button>
                 </div>
 
-                <div>
-                   <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Brightness</span>
-                    <span>{options.brightness}</span>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-2">
+                      <span>Rotation</span>
+                      <span className="text-indigo-300 font-mono">{options.rotation}°</span>
+                    </div>
+                    <input
+                      type="range" min="-180" max="180"
+                      value={options.rotation}
+                      onChange={(e) => setOptions({ ...options, rotation: Number(e.target.value) })}
+                      className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+                    />
                   </div>
-                  <input 
-                    type="range" min="-100" max="100" 
-                    value={options.brightness} 
-                    onChange={(e) => setOptions({...options, brightness: Number(e.target.value)})}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                  />
-                </div>
 
-                <div>
-                   <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Contrast</span>
-                    <span>{options.contrast}</span>
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-2">
+                      <span>Brightness</span>
+                      <span className="text-indigo-300 font-mono">{options.brightness}</span>
+                    </div>
+                    <input
+                      type="range" min="-100" max="100"
+                      value={options.brightness}
+                      onChange={(e) => setOptions({ ...options, brightness: Number(e.target.value) })}
+                      className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+                    />
                   </div>
-                  <input 
-                    type="range" min="-100" max="100" 
-                    value={options.contrast} 
-                    onChange={(e) => setOptions({...options, contrast: Number(e.target.value)})}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                  />
+
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-2">
+                      <span>Contrast</span>
+                      <span className="text-indigo-300 font-mono">{options.contrast}</span>
+                    </div>
+                    <input
+                      type="range" min="-100" max="100"
+                      value={options.contrast}
+                      onChange={(e) => setOptions({ ...options, contrast: Number(e.target.value) })}
+                      className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
-          
-           {resultImage && (
-             <Button onClick={handleDownload} className="w-full py-3 text-lg shadow-lg shadow-indigo-200">
-               Download Image
-             </Button>
-           )}
+
+          {resultImage && !isCropping && (
+            <Button onClick={handleDownload} className="w-full py-4 text-lg shadow-xl shadow-indigo-500/20" variant="primary" icon="fas fa-download">
+              Download Image
+            </Button>
+          )}
         </div>
 
-        {/* Right Column: Preview */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-2 relative min-h-[500px] flex items-center justify-center checkerboard">
-             {resultImage ? (
-               <img src={resultImage} alt="Result" className="max-w-full max-h-[70vh] rounded shadow-sm" />
-             ) : template.imageUrl ? (
-                <>
-                  {console.log('Preview image URL:', template.imageUrl)}
-                  <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[60vh] opacity-50 blur-sm rounded" onError={(e) => { console.error('Image failed to load:', template.imageUrl); e.currentTarget.style.display = 'none'; }} />
-                </>
-             ) : (
-                <div className="text-center">
-                  <span className="bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-md">
-                    Waiting for upload...
-                  </span>
+        {/* Right Column: Preview or Cropper */}
+        <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <div className="glass-panel rounded-2xl shadow-2xl border border-slate-700/50 p-2 relative min-h-[600px] flex items-center justify-center checkerboard overflow-hidden">
+
+            {isCropping && originalImage ? (
+              <div className="w-full h-full flex flex-col p-4">
+                <h3 className="text-white font-bold mb-4 text-center">Crop Your Face Area</h3>
+                <div className="flex-grow relative bg-slate-900 rounded-xl overflow-hidden mb-4 border border-slate-600">
+                  <FaceSelector
+                    imageUrl={originalImage}
+                    initialRect={cropRect}
+                    onChange={setCropRect}
+                  />
                 </div>
-             )}
-             
-    {isProcessing && (
-               <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10 backdrop-blur-sm">
-                 <div className="flex flex-col items-center">
-                    <svg className="animate-spin h-10 w-10 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p className="text-slate-600 font-medium">Processing...</p>
-                 </div>
-               </div>
-             )}
+                <div className="flex gap-4 justify-center">
+                  <Button variant="secondary" onClick={() => setIsCropping(false)}>Cancel</Button>
+                  <Button variant="primary" onClick={handleCropConfirm} icon="fas fa-crop-alt">Crop & Use</Button>
+                </div>
+              </div>
+            ) : resultImage ? (
+              <img src={resultImage} alt="Result" className="max-w-full max-h-[80vh] rounded-xl shadow-lg" />
+            ) : template.imageUrl ? (
+              <>
+                <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[80vh] opacity-40 blur-sm rounded-xl" onError={(e) => { console.error('Image failed to load:', template.imageUrl); e.currentTarget.style.display = 'none'; }} />
+                {!userImage && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-slate-900/80 backdrop-blur-md text-white px-6 py-4 rounded-2xl border border-slate-700 shadow-xl text-center">
+                      <i className="fas fa-arrow-left md:hidden mb-2 text-2xl text-indigo-400 animate-bounce"></i>
+                      <i className="fas fa-arrow-left hidden md:block mb-2 text-2xl text-indigo-400 animate-bounce -rotate-90 md:rotate-0"></i>
+                      <p className="font-medium">Upload your photo to start</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center">
+                <span className="bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-md">
+                  Waiting for upload...
+                </span>
+              </div>
+            )}
+
+            {isProcessing && (
+              <div className="absolute inset-0 bg-slate-900/80 flex items-center justify-center z-10 backdrop-blur-md rounded-2xl">
+                <div className="flex flex-col items-center">
+                  <div className="relative w-20 h-20 mb-4">
+                    <div className="absolute inset-0 border-4 border-slate-700 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
+                  </div>
+                  <p className="text-indigo-300 font-medium text-lg animate-pulse">Processing Magic...</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -201,6 +267,5 @@ const TemplateView: React.FC = () => {
     </div>
   );
 };
-
 
 export default TemplateView;
