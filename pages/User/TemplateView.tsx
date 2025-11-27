@@ -136,7 +136,7 @@ const TemplateView: React.FC = () => {
             <h1 className="text-2xl font-bold text-white mb-2">{template.name}</h1>
             <p className="text-sm text-slate-400 mb-8">Upload your photo to generate your personalized poster.</p>
 
-            <label className="block w-full cursor-pointer bg-slate-800 border-2 border-dashed border-slate-600 hover:border-indigo-500 hover:bg-slate-700/50 text-indigo-300 rounded-xl p-8 text-center transition-all group mb-8">
+            <label className="block w-full cursor-pointer bg-slate-800 border-2 border-dashed border-slate-600 hover:border-indigo-500 hover:bg-slate-700/50 text-indigo-300 rounded-xl p-8 text-center transition-all group mb-4">
               <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                 <i className="fas fa-camera text-xl text-indigo-400"></i>
               </div>
@@ -144,6 +144,38 @@ const TemplateView: React.FC = () => {
               <span className="text-xs text-slate-500 mt-1 block">JPG or PNG</span>
               <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
             </label>
+            <button
+              type="button"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl mb-8 flex items-center justify-center gap-2"
+              onClick={async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                  alert('Camera not supported on this device/browser.');
+                  return;
+                }
+                try {
+                  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                  const video = document.createElement('video');
+                  video.srcObject = stream;
+                  video.play();
+                  const canvas = document.createElement('canvas');
+                  video.onloadedmetadata = async () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const base64 = canvas.toDataURL('image/png');
+                    setUserImage(base64);
+                    stream.getTracks().forEach(track => track.stop());
+                  };
+                  document.body.appendChild(video); // Needed for some browsers to start video
+                  setTimeout(() => document.body.removeChild(video), 2000); // Remove after capture
+                } catch (err) {
+                  alert('Unable to access camera.');
+                }
+              }}
+            >
+              <i className="fas fa-camera"></i> Take Photo
+            </button>
 
             {userImage && !isCropping && (
               <div className="space-y-6 border-t border-slate-700/50 pt-6">

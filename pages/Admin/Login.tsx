@@ -6,6 +6,7 @@ import Button from '../../components/Button';
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -55,13 +56,21 @@ const Login: React.FC = () => {
             <div className="relative">
               <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 rounded-xl glass-input focus:outline-none"
+                className="w-full pl-11 pr-12 py-3 rounded-xl glass-input focus:outline-none"
                 placeholder="••••••••"
                 required
               />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-600"
+                tabIndex={-1}
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                <i className={showPassword ? "fas fa-eye-slash" : "fas fa-eye"}></i>
+              </button>
             </div>
           </div>
 
