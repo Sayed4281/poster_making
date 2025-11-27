@@ -46,6 +46,7 @@ const App: React.FC = () => {
 
         {/* User Routes */}
         <Route path="/template/:id" element={<TemplateView />} />
+        <Route path="/:id" element={<TemplateView />} />
         
         {/* Default Redirect */}
         <Route path="*" element={<Navigate to="/admin/login" replace />} />
