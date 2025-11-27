@@ -132,17 +132,6 @@ export const mergeImages = async (
   const saturate = 100 + options.saturation;
   ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`;
 
-  // Apply Scale and Position (Zoom & Pan)
-  // Transform relative to the center of the destination rect
-  const centerX = destX + destW / 2;
-  const centerY = destY + destH / 2;
-
-  ctx.translate(centerX, centerY);
-  ctx.translate(options.x || 0, options.y || 0); // Apply user offset
-  const scale = options.scale || 1;
-  ctx.scale(scale, scale); // Apply user scale
-  ctx.translate(-centerX, -centerY);
-
   // We want to "Crop to Fit" or "Fill" the destination rect with our face
   // Simple approach: Stretch to fit (User acts as the cropper in the UI)
   ctx.drawImage(

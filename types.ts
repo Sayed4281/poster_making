@@ -1,31 +1,28 @@
 export interface Rect {
-  x: number; // Percentage 0-100
-  y: number; // Percentage 0-100
-  width: number; // Percentage 0-100
-  height: number; // Percentage 0-100
-  shape?: 'rect' | 'circle' | 'rounded-rect';
-  borderRadius?: number; // 0-50%
+    x: number; // Percentage 0-100
+    y: number; // Percentage 0-100
+    width: number; // Percentage 0-100
+    height: number; // Percentage 0-100
+    shape?: 'rect' | 'circle' | 'rounded-rect';
+    borderRadius?: number; // 0-50%
 }
 
 export interface Template {
-  id: string;
-  name: string;
-  imageUrl: string;
-  faceRect: Rect;
-  createdAt: number;
-  customId?: string; // Optional custom identifier for links
+    id: string;
+    name: string;
+    imageUrl: string;
+    faceRect: Rect;
+    createdAt: number;
+    customId?: string; // Optional custom identifier for links
 }
 
 export interface UserState {
-  isAdmin: boolean;
+    isAdmin: boolean;
 }
 
 export interface ProcessingOptions {
-  brightness: number;
-  contrast: number;
-  saturation: number;
-  rotation: number;
-  scale: number; // 1 = 100%
-  x: number; // Horizontal offset
-  y: number; // Vertical offset
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    rotation: number;
 }
