@@ -80,7 +80,7 @@ const FaceSelector: React.FC<FaceSelectorProps> = ({ imageUrl, initialRect, onCh
 
     return (
         <div
-            className="relative w-full max-w-2xl mx-auto select-none overflow-hidden rounded-lg shadow-2xl bg-slate-900 border border-slate-700 group/container"
+            className="relative w-full max-w-2xl mx-auto select-none overflow-hidden rounded-lg sm:rounded-xl shadow-xl sm:shadow-2xl bg-slate-900 border border-slate-700 group/container"
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
@@ -107,51 +107,51 @@ const FaceSelector: React.FC<FaceSelectorProps> = ({ imageUrl, initialRect, onCh
             >
                 {/* Resize Handle */}
                 <div
-                    className="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 cursor-se-resize flex items-center justify-center rounded-tl-lg shadow-lg z-20 hover:bg-indigo-400 transition-colors"
+                    className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-indigo-500 cursor-se-resize flex items-center justify-center rounded-tl-md sm:rounded-tl-lg shadow-lg z-20 hover:bg-indigo-400 transition-colors"
                     onMouseDown={(e) => {
                         e.stopPropagation();
                         handleMouseDown(e, 'resize');
                     }}
                 >
-                    <i className="fas fa-expand text-white text-[10px]"></i>
+                    <i className="fas fa-expand text-white text-[8px] sm:text-[10px]"></i>
                 </div>
 
                 {/* Shape Toggle & Label Container */}
-                <div className="absolute -top-12 left-0 flex items-center gap-2 z-30">
+                <div className="absolute -top-10 sm:-top-12 left-0 flex items-center gap-1.5 sm:gap-2 z-30 flex-wrap">
                     {/* Label */}
-                    <div className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg font-medium whitespace-nowrap flex items-center gap-2">
-                        <i className="fas fa-crop-alt"></i> Face Area
+                    <div className="bg-indigo-600 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg shadow-lg font-medium whitespace-nowrap flex items-center gap-1 sm:gap-2">
+                        <i className="fas fa-crop-alt text-[10px] sm:text-xs"></i> <span className="hidden xs:inline">Face Area</span><span className="xs:inline sm:hidden">Face</span>
                     </div>
 
                     {/* Shape Toggle Button */}
                     <button
                         onClick={toggleShape}
-                        className="bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-600 p-1.5 rounded-lg shadow-lg transition-all flex items-center justify-center w-8 h-8 hover:text-white hover:border-indigo-500"
+                        className="bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-600 p-1 sm:p-1.5 rounded-md sm:rounded-lg shadow-lg transition-all flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 hover:text-white hover:border-indigo-500"
                         title="Toggle Shape"
                         onMouseDown={(e) => e.stopPropagation()}
                     >
                         {rect.shape === 'circle' ? (
-                            <i className="far fa-circle text-lg"></i>
+                            <i className="far fa-circle text-base sm:text-lg"></i>
                         ) : rect.shape === 'rounded-rect' ? (
-                            <i className="far fa-square text-lg rounded-md border-2 border-current scale-75"></i>
+                            <i className="far fa-square text-base sm:text-lg rounded-md border-2 border-current scale-75"></i>
                         ) : (
-                            <i className="far fa-square text-lg"></i>
+                            <i className="far fa-square text-base sm:text-lg"></i>
                         )}
                     </button>
 
                     {/* Border Radius Slider */}
                     {rect.shape === 'rounded-rect' && (
-                        <div className="bg-slate-800 border border-slate-600 p-1.5 rounded-lg shadow-lg flex items-center gap-2" onMouseDown={(e) => e.stopPropagation()}>
-                            <span className="text-[10px] text-slate-400 uppercase font-bold">Radius</span>
+                        <div className="bg-slate-800 border border-slate-600 p-1 sm:p-1.5 rounded-md sm:rounded-lg shadow-lg flex items-center gap-1.5 sm:gap-2" onMouseDown={(e) => e.stopPropagation()}>
+                            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold">Radius</span>
                             <input
                                 type="range"
                                 min="0"
                                 max="50"
                                 value={rect.borderRadius || 0}
                                 onChange={handleRadiusChange}
-                                className="w-16 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-12 sm:w-16 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                             />
-                            <span className="text-[10px] text-indigo-400 w-4 text-right">{rect.borderRadius || 0}%</span>
+                            <span className="text-[9px] sm:text-[10px] text-indigo-400 w-3 sm:w-4 text-right">{rect.borderRadius || 0}%</span>
                         </div>
                     )}
                 </div>

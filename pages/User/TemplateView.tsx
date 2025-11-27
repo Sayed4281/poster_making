@@ -98,7 +98,7 @@ const TemplateView: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen py-10 px-4 relative">
+    <div className="min-h-screen py-4 sm:py-6 md:py-10 px-3 sm:px-4 md:px-6 relative">
       {/* Background Elements */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3"></div>
@@ -106,37 +106,37 @@ const TemplateView: React.FC = () => {
       </div>
 
       {/* Header Navigation */}
-      <div className="max-w-6xl mx-auto mb-8 flex items-center justify-between">
-        <div className="font-bold text-indigo-400 text-sm tracking-widest uppercase flex items-center gap-2">
-          <i className="fas fa-bolt"></i> Smart Template Gen
+      <div className="max-w-6xl mx-auto mb-4 sm:mb-6 md:mb-8 flex items-center justify-between">
+        <div className="font-bold text-indigo-400 text-xs sm:text-sm tracking-widest uppercase flex items-center gap-2">
+          <i className="fas fa-bolt"></i> <span className="hidden xs:inline">Smart Template Gen</span><span className="xs:hidden">Template Gen</span>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
 
         {/* Left Column: Controls */}
-        <div className="lg:col-span-1 space-y-6 animate-fade-in">
-          <div className="glass-panel rounded-2xl p-6 border border-slate-700/50">
-            <h1 className="text-2xl font-bold text-white mb-2">{template.name}</h1>
-            <p className="text-sm text-slate-400 mb-8">Upload your photo to generate your personalized poster.</p>
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6 animate-fade-in">
+          <div className="glass-panel rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-700/50">
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{template.name}</h1>
+            <p className="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6 md:mb-8">Upload your photo to generate your personalized poster.</p>
 
-            <label className="block w-full cursor-pointer bg-slate-800 border-2 border-dashed border-slate-600 hover:border-indigo-500 hover:bg-slate-700/50 text-indigo-300 rounded-xl p-8 text-center transition-all group mb-4">
-              <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <i className="fas fa-camera text-xl text-indigo-400"></i>
+            <label className="block w-full cursor-pointer bg-slate-800 border-2 border-dashed border-slate-600 hover:border-indigo-500 hover:bg-slate-700/50 text-indigo-300 rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 text-center transition-all group mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
+                <i className="fas fa-camera text-lg sm:text-xl text-indigo-400"></i>
               </div>
-              <span className="font-medium block text-white">Upload Your Face</span>
+              <span className="font-medium block text-white text-sm sm:text-base">Upload Your Face</span>
               <span className="text-xs text-slate-500 mt-1 block">JPG or PNG</span>
               <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
             </label>
             {/* Take Photo button removed as requested */}
 
             {userImage && (
-              <div className="space-y-6 border-t border-slate-700/50 pt-6">
+              <div className="space-y-4 sm:space-y-6 border-t border-slate-700/50 pt-4 sm:pt-6">
 
 
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium text-white text-sm flex items-center gap-2">
-                    <i className="fas fa-sliders-h text-indigo-400"></i> Adjustments
+                <div className="flex justify-between items-center mb-3 sm:mb-4">
+                  <h3 className="font-medium text-white text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <i className="fas fa-sliders-h text-indigo-400 text-xs sm:text-sm"></i> Adjustments
                   </h3>
                   <button
                     onClick={() => setOptions({ brightness: 0, contrast: 0, saturation: 0, rotation: 0 })}
@@ -192,7 +192,7 @@ const TemplateView: React.FC = () => {
           </div>
 
           {resultImage && (
-            <Button onClick={handleDownload} className="w-full py-4 text-lg shadow-xl shadow-indigo-500/20" variant="primary" icon="fas fa-download">
+            <Button onClick={handleDownload} className="w-full py-3 sm:py-4 text-base sm:text-lg shadow-xl shadow-indigo-500/20" variant="primary" icon="fas fa-download">
               Download Image
             </Button>
           )}
@@ -200,19 +200,19 @@ const TemplateView: React.FC = () => {
 
         {/* Right Column: Preview or Cropper */}
         <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <div className="glass-panel rounded-2xl shadow-2xl border border-slate-700/50 p-2 relative min-h-[600px] flex items-center justify-center checkerboard overflow-hidden">
+          <div className="glass-panel rounded-xl sm:rounded-2xl shadow-2xl border border-slate-700/50 p-2 relative min-h-[400px] sm:min-h-[500px] md:min-h-[600px] flex items-center justify-center checkerboard overflow-hidden">
 
             {resultImage ? (
-              <img src={resultImage} alt="Result" className="max-w-full max-h-[80vh] rounded-xl shadow-lg" />
+              <img src={resultImage} alt="Result" className="max-w-full max-h-[60vh] sm:max-h-[70vh] md:max-h-[80vh] rounded-lg sm:rounded-xl shadow-lg" />
             ) : template.imageUrl ? (
               <>
-                <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[80vh] opacity-40 blur-sm rounded-xl" onError={(e) => { console.error('Image failed to load:', template.imageUrl); e.currentTarget.style.display = 'none'; }} />
+                <img src={template.imageUrl} alt="Preview" className="max-w-full max-h-[60vh] sm:max-h-[70vh] md:max-h-[80vh] opacity-40 blur-sm rounded-lg sm:rounded-xl" onError={(e) => { console.error('Image failed to load:', template.imageUrl); e.currentTarget.style.display = 'none'; }} />
                 {!userImage && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-slate-900/80 backdrop-blur-md text-white px-6 py-4 rounded-2xl border border-slate-700 shadow-xl text-center">
-                      <i className="fas fa-arrow-up md:hidden mb-2 text-2xl text-indigo-400 animate-bounce"></i>
+                    <div className="bg-slate-900/80 backdrop-blur-md text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl border border-slate-700 shadow-xl text-center">
+                      <i className="fas fa-arrow-up md:hidden mb-2 text-xl sm:text-2xl text-indigo-400 animate-bounce"></i>
                       <i className="fas fa-arrow-left hidden md:block mb-2 text-2xl text-indigo-400 animate-bounce"></i>
-                      <p className="font-medium">Upload your photo to start</p>
+                      <p className="font-medium text-sm sm:text-base">Upload your photo to start</p>
                     </div>
                   </div>
                 )}
