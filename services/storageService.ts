@@ -1,16 +1,20 @@
-// Helper to get a template by customId
-export const getTemplateByCustomId = async (customId: string): Promise<Template | undefined> => {
-  const templates = await getTemplates();
-  return templates.find(t => t.customId?.trim() === customId.trim());
-};
-import { Template, Rect } from '../types';
+import { Template } from '../types';
 import { db } from './firebase';
-import { collection, getDocs, getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 // Helper to get all templates from Firestore
 export const getTemplates = async (): Promise<Template[]> => {
   const snapshot = await getDocs(collection(db, 'templates'));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Template));
+};
+
+// Helper to get a template by customId
+export const getTemplateByCustomId = async (customId: string): Promise<Template | undefined> => {
+  const q = query(collection(db, 'templates'), where('customId', '==', customId));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return undefined;
+  const d = snapshot.docs[0];
+  return { id: d.id, ...d.data() } as Template;
 };
 
 // Helper to get a single template from Firestore
