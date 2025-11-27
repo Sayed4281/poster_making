@@ -14,6 +14,7 @@ const TemplateEditor: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState('');
+  const [customId, setCustomId] = useState('');
   const [imageFile, setImageFile] = useState<string | null>(null);
   const [faceRect, setFaceRect] = useState<Rect>(DEFAULT_RECT);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,6 +114,7 @@ const TemplateEditor: React.FC = () => {
       imageUrl: imageFile,
       faceRect,
       createdAt: Date.now(),
+      customId: customId.trim() ? customId.trim() : undefined,
     };
 
     try {
@@ -144,8 +146,16 @@ const TemplateEditor: React.FC = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 mb-2"
                   placeholder="e.g. Superhero, Magazine Cover..."
+                />
+                <label className="block text-sm font-medium text-slate-700 mb-2 mt-4">Custom Link ID <span className="text-slate-400">(optional)</span></label>
+                <input
+                  type="text"
+                  value={customId}
+                  onChange={(e) => setCustomId(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="e.g. superhero2025, mag-cover"
                 />
               </div>
 
@@ -206,8 +216,16 @@ const TemplateEditor: React.FC = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 mb-2"
                   placeholder="e.g. Superhero, Magazine Cover..."
+                />
+                <label className="block text-sm font-medium text-slate-700 mb-2 mt-4">Custom Link ID <span className="text-slate-400">(optional)</span></label>
+                <input
+                  type="text"
+                  value={customId}
+                  onChange={(e) => setCustomId(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="e.g. superhero2025, mag-cover"
                 />
                </div>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTemplateById, fileToBase64 } from '../../services/storageService';
+import { getTemplateById, getTemplateByCustomId, fileToBase64 } from '../../services/storageService';
 import { mergeImages } from '../../utils/canvasUtils';
 import { Template, ProcessingOptions } from '../../types';
 import { AUTH_STORAGE_KEY } from '../../constants';
@@ -27,7 +27,10 @@ const TemplateView: React.FC = () => {
   useEffect(() => {
     if (id) {
       (async () => {
-        const t = await getTemplateById(id);
+        let t = await getTemplateById(id);
+        if (!t) {
+          t = await getTemplateByCustomId(id);
+        }
         if (t) {
           console.log('Loaded template:', t);
           setTemplate(t);
@@ -83,10 +86,8 @@ const TemplateView: React.FC = () => {
   if (!template) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-500 flex-col gap-4">
-        <p>Template not found.</p>
-        {isAdmin && (
-           <Button onClick={() => navigate('/admin/dashboard')}>Go to Dashboard</Button>
-        )}
+        <h2 className="text-2xl font-semibold">Loading Template...</h2>
+          {/* Dashboard navigation removed */}
       </div>
     );
   }
@@ -95,13 +96,7 @@ const TemplateView: React.FC = () => {
     <div className="min-h-screen bg-slate-100 py-10 px-4">
       {/* Header Navigation */}
       <div className="max-w-5xl mx-auto mb-6 flex items-center justify-between">
-        {isAdmin ? (
-           <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-slate-600 hover:text-slate-900 px-0 hover:bg-transparent">
-             <i className="fas fa-chevron-left mr-2"></i> Back to Dashboard
-           </Button>
-        ) : (
-           <div className="font-bold text-slate-400 text-sm tracking-wide uppercase">Smart Template Gen</div>
-        )}
+        <div className="font-bold text-slate-400 text-sm tracking-wide uppercase">Smart Template Gen</div>
       </div>
 
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -188,7 +183,7 @@ const TemplateView: React.FC = () => {
                 </div>
              )}
              
-             {isProcessing && (
+    {isProcessing && (
                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10 backdrop-blur-sm">
                  <div className="flex flex-col items-center">
                     <svg className="animate-spin h-10 w-10 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -206,5 +201,6 @@ const TemplateView: React.FC = () => {
     </div>
   );
 };
+
 
 export default TemplateView;

@@ -12,6 +12,7 @@ export interface Template {
   imageUrl: string;
   faceRect: Rect;
   createdAt: number;
+  customId?: string; // Optional custom identifier for links
 }
 
 export interface UserState {
