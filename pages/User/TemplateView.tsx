@@ -132,10 +132,19 @@ const TemplateView: React.FC = () => {
 
             {userImage && (
               <div className="space-y-6 border-t border-slate-700/50 pt-6">
-                <div className="flex justify-between items-center">
+
+
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="font-medium text-white text-sm flex items-center gap-2">
                     <i className="fas fa-sliders-h text-indigo-400"></i> Adjustments
                   </h3>
+                  <button
+                    onClick={() => setOptions({ brightness: 0, contrast: 0, saturation: 0, rotation: 0 })}
+                    className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+                    title="Reset all adjustments"
+                  >
+                    <i className="fas fa-undo"></i> Reset
+                  </button>
                 </div>
 
                 <div className="space-y-4">
