@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
     const baseUrl = window.location.href.split('#')[0].replace(/\/$/, '');
     const template = templates.find(t => t.id === id);
     const linkId = template?.customId?.trim() ? template.customId.trim() : id;
-    const url = `${baseUrl}/#/template/${linkId}`;
+    const url = `${baseUrl}/#/${linkId}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
