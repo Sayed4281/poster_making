@@ -144,38 +144,7 @@ const TemplateView: React.FC = () => {
               <span className="text-xs text-slate-500 mt-1 block">JPG or PNG</span>
               <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
             </label>
-            <button
-              type="button"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl mb-8 flex items-center justify-center gap-2"
-              onClick={async () => {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                  alert('Camera not supported on this device/browser.');
-                  return;
-                }
-                try {
-                  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                  const video = document.createElement('video');
-                  video.srcObject = stream;
-                  video.play();
-                  const canvas = document.createElement('canvas');
-                  video.onloadedmetadata = async () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const base64 = canvas.toDataURL('image/png');
-                    setUserImage(base64);
-                    stream.getTracks().forEach(track => track.stop());
-                  };
-                  document.body.appendChild(video); // Needed for some browsers to start video
-                  setTimeout(() => document.body.removeChild(video), 2000); // Remove after capture
-                } catch (err) {
-                  alert('Unable to access camera.');
-                }
-              }}
-            >
-              <i className="fas fa-camera"></i> Take Photo
-            </button>
+            {/* Take Photo button removed as requested */}
 
             {userImage && !isCropping && (
               <div className="space-y-6 border-t border-slate-700/50 pt-6">
