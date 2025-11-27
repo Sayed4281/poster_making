@@ -106,6 +106,23 @@ export const mergeImages = async (
       0, 0, 2 * Math.PI
     );
     ctx.clip();
+  } else if (rect.shape === 'rounded-rect' && rect.borderRadius) {
+    // Calculate radius based on the smaller dimension to ensure circular corners
+    // Using percentage from 0-50
+    const radius = Math.min(destW, destH) * (rect.borderRadius / 100);
+
+    ctx.beginPath();
+    ctx.moveTo(destX + radius, destY);
+    ctx.lineTo(destX + destW - radius, destY);
+    ctx.arcTo(destX + destW, destY, destX + destW, destY + radius, radius);
+    ctx.lineTo(destX + destW, destY + destH - radius);
+    ctx.arcTo(destX + destW, destY + destH, destX + destW - radius, destY + destH, radius);
+    ctx.lineTo(destX + radius, destY + destH);
+    ctx.arcTo(destX, destY + destH, destX, destY + destH - radius, radius);
+    ctx.lineTo(destX, destY + radius);
+    ctx.arcTo(destX, destY, destX + radius, destY, radius);
+    ctx.closePath();
+    ctx.clip();
   }
 
   // Apply filters

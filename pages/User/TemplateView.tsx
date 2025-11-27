@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTemplateById, getTemplateByCustomId, fileToBase64 } from '../../services/storageService';
-import { mergeImages, cropImage } from '../../utils/canvasUtils';
+import { mergeImages } from '../../utils/canvasUtils';
 import { Template, ProcessingOptions, Rect } from '../../types';
 import { AUTH_STORAGE_KEY } from '../../constants';
 import Button from '../../components/Button';
-import FaceSelector from '../../components/FaceSelector';
+
 
 const TemplateView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,10 +15,7 @@ const TemplateView: React.FC = () => {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Cropping State
-  const [isCropping, setIsCropping] = useState(false);
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [cropRect, setCropRect] = useState<Rect>({ x: 10, y: 10, width: 80, height: 80, shape: 'rect' });
+
 
   // Image Adjustment State
   const [options, setOptions] = useState<ProcessingOptions>({
@@ -47,36 +44,23 @@ const TemplateView: React.FC = () => {
 
   // Real-time update of preview when options change
   useEffect(() => {
-    if (template && userImage && !isCropping) {
+    if (template && userImage) {
       const timer = setTimeout(() => {
         handleProcess();
       }, 100); // Debounce
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, userImage, isCropping]);
+  }, [options, userImage]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const base64 = await fileToBase64(e.target.files[0]);
-      setOriginalImage(base64);
-      setIsCropping(true);
-      // Reset crop rect to a reasonable default
-      setCropRect({ x: 10, y: 10, width: 80, height: 80, shape: 'rect' });
+      setUserImage(base64);
     }
   };
 
-  const handleCropConfirm = async () => {
-    if (!originalImage) return;
-    try {
-      const cropped = await cropImage(originalImage, cropRect);
-      setUserImage(cropped);
-      setIsCropping(false);
-    } catch (e) {
-      console.error("Crop failed", e);
-      alert("Failed to crop image");
-    }
-  };
+
 
   const handleProcess = async () => {
     if (!template || !userImage) return;
@@ -146,15 +130,12 @@ const TemplateView: React.FC = () => {
             </label>
             {/* Take Photo button removed as requested */}
 
-            {userImage && !isCropping && (
+            {userImage && (
               <div className="space-y-6 border-t border-slate-700/50 pt-6">
                 <div className="flex justify-between items-center">
                   <h3 className="font-medium text-white text-sm flex items-center gap-2">
                     <i className="fas fa-sliders-h text-indigo-400"></i> Adjustments
                   </h3>
-                  <button onClick={() => setIsCropping(true)} className="text-xs text-indigo-400 hover:text-indigo-300 underline">
-                    Re-crop Image
-                  </button>
                 </div>
 
                 <div className="space-y-4">
@@ -201,7 +182,7 @@ const TemplateView: React.FC = () => {
             )}
           </div>
 
-          {resultImage && !isCropping && (
+          {resultImage && (
             <Button onClick={handleDownload} className="w-full py-4 text-lg shadow-xl shadow-indigo-500/20" variant="primary" icon="fas fa-download">
               Download Image
             </Button>
@@ -212,22 +193,7 @@ const TemplateView: React.FC = () => {
         <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="glass-panel rounded-2xl shadow-2xl border border-slate-700/50 p-2 relative min-h-[600px] flex items-center justify-center checkerboard overflow-hidden">
 
-            {isCropping && originalImage ? (
-              <div className="w-full h-full flex flex-col p-4">
-                <h3 className="text-white font-bold mb-4 text-center">Crop Your Face Area</h3>
-                <div className="flex-grow relative bg-slate-900 rounded-xl overflow-hidden mb-4 border border-slate-600">
-                  <FaceSelector
-                    imageUrl={originalImage}
-                    initialRect={cropRect}
-                    onChange={setCropRect}
-                  />
-                </div>
-                <div className="flex gap-4 justify-center">
-                  <Button variant="secondary" onClick={() => setIsCropping(false)}>Cancel</Button>
-                  <Button variant="primary" onClick={handleCropConfirm} icon="fas fa-crop-alt">Crop & Use</Button>
-                </div>
-              </div>
-            ) : resultImage ? (
+            {resultImage ? (
               <img src={resultImage} alt="Result" className="max-w-full max-h-[80vh] rounded-xl shadow-lg" />
             ) : template.imageUrl ? (
               <>

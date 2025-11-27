@@ -22,8 +22,20 @@ const FaceSelector: React.FC<FaceSelectorProps> = ({ imageUrl, initialRect, onCh
 
     const toggleShape = (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent drag start
-        const newShape: 'rect' | 'circle' = rect.shape === 'circle' ? 'rect' : 'circle';
-        const newRect = { ...rect, shape: newShape };
+        let newShape: 'rect' | 'circle' | 'rounded-rect';
+        if (rect.shape === 'rect') newShape = 'circle';
+        else if (rect.shape === 'circle') newShape = 'rounded-rect';
+        else newShape = 'rect';
+
+        const newRect = { ...rect, shape: newShape, borderRadius: newShape === 'rounded-rect' ? 20 : 0 };
+        setRect(newRect);
+        onChange(newRect);
+    };
+
+    const handleRadiusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.stopPropagation();
+        const radius = parseInt(e.target.value);
+        const newRect = { ...rect, borderRadius: radius };
         setRect(newRect);
         onChange(newRect);
     };
@@ -83,12 +95,13 @@ const FaceSelector: React.FC<FaceSelectorProps> = ({ imageUrl, initialRect, onCh
 
             {/* Selection Box */}
             <div
-                className={`absolute border-2 border-indigo-500 bg-indigo-500/10 cursor-move group ${rect.shape === 'circle' ? 'rounded-[50%]' : 'rounded-none'} shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]`}
+                className={`absolute border-2 border-indigo-500 bg-indigo-500/10 cursor-move group shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]`}
                 style={{
                     left: `${rect.x}%`,
                     top: `${rect.y}%`,
                     width: `${rect.width}%`,
                     height: `${rect.height}%`,
+                    borderRadius: rect.shape === 'circle' ? '50%' : rect.shape === 'rounded-rect' ? `${rect.borderRadius || 0}%` : '0px',
                 }}
                 onMouseDown={(e) => handleMouseDown(e, 'move')}
             >
@@ -114,15 +127,33 @@ const FaceSelector: React.FC<FaceSelectorProps> = ({ imageUrl, initialRect, onCh
                     <button
                         onClick={toggleShape}
                         className="bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-600 p-1.5 rounded-lg shadow-lg transition-all flex items-center justify-center w-8 h-8 hover:text-white hover:border-indigo-500"
-                        title={rect.shape === 'circle' ? "Switch to Rectangle" : "Switch to Circle"}
+                        title="Toggle Shape"
                         onMouseDown={(e) => e.stopPropagation()}
                     >
                         {rect.shape === 'circle' ? (
-                            <i className="far fa-square text-lg"></i>
-                        ) : (
                             <i className="far fa-circle text-lg"></i>
+                        ) : rect.shape === 'rounded-rect' ? (
+                            <i className="far fa-square text-lg rounded-md border-2 border-current scale-75"></i>
+                        ) : (
+                            <i className="far fa-square text-lg"></i>
                         )}
                     </button>
+
+                    {/* Border Radius Slider */}
+                    {rect.shape === 'rounded-rect' && (
+                        <div className="bg-slate-800 border border-slate-600 p-1.5 rounded-lg shadow-lg flex items-center gap-2" onMouseDown={(e) => e.stopPropagation()}>
+                            <span className="text-[10px] text-slate-400 uppercase font-bold">Radius</span>
+                            <input
+                                type="range"
+                                min="0"
+                                max="50"
+                                value={rect.borderRadius || 0}
+                                onChange={handleRadiusChange}
+                                className="w-16 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            />
+                            <span className="text-[10px] text-indigo-400 w-4 text-right">{rect.borderRadius || 0}%</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Center Crosshair */}
@@ -131,7 +162,7 @@ const FaceSelector: React.FC<FaceSelectorProps> = ({ imageUrl, initialRect, onCh
                     <div className="absolute left-1/2 top-0 h-full w-[1px] bg-indigo-400"></div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

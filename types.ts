@@ -3,7 +3,8 @@ export interface Rect {
   y: number; // Percentage 0-100
   width: number; // Percentage 0-100
   height: number; // Percentage 0-100
-  shape?: 'rect' | 'circle';
+  shape?: 'rect' | 'circle' | 'rounded-rect';
+  borderRadius?: number; // 0-50%
 }
 
 export interface Template {
