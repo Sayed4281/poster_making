@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { saveTemplate, fileToBase64 } from '../../services/storageService';
+import { saveTemplate } from '../../services/storageService';
 import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 import { generateTemplateImage } from '../../services/geminiService';
 import { detectFace } from '../../services/faceDetectionService';
@@ -25,16 +25,16 @@ const TemplateEditor: React.FC = () => {
   const processNewImage = async (base64: string) => {
     setIsLoading(true);
     setLoadingMessage("Optimizing image...");
-    
+
     try {
       // 1. Compress Image (Resize to max 1024px to fit in LocalStorage)
       const compressed = await compressImage(base64, 1024, 0.85);
       setImageFile(compressed);
-      
+
       // 2. Detect Face
       setLoadingMessage("Detecting face...");
       const detected = await detectFace(compressed);
-      
+
       if (detected) {
         setFaceRect(detected);
         console.log("Face detected:", detected);
@@ -42,7 +42,7 @@ const TemplateEditor: React.FC = () => {
         setFaceRect(DEFAULT_RECT);
         console.log("No face detected, using default.");
       }
-      
+
       setStep(2);
     } catch (err) {
       console.error(err);
@@ -74,12 +74,12 @@ const TemplateEditor: React.FC = () => {
   };
 
   const handleGenerateAI = async () => {
-    if(!genPrompt) return alert("Please enter a prompt");
+    if (!genPrompt) return alert("Please enter a prompt");
     setIsLoading(true);
     setLoadingMessage("Generating image with Gemini...");
     try {
       const imageUrl = await generateTemplateImage(genPrompt);
-      if(imageUrl) {
+      if (imageUrl) {
         await processNewImage(imageUrl);
       } else {
         alert("Failed to generate image.");
@@ -103,9 +103,9 @@ const TemplateEditor: React.FC = () => {
     // Generate UUID with fallback
     let id = '';
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-       id = crypto.randomUUID();
+      id = crypto.randomUUID();
     } else {
-       id = Date.now().toString(36) + Math.random().toString(36).substring(2);
+      id = Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
 
     const newTemplate = {
@@ -126,42 +126,62 @@ const TemplateEditor: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-slate-100">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-slate-800">
-            {step === 1 ? 'Step 1: Upload Template' : 'Step 2: Configure Template'}
-          </h1>
-          <button onClick={() => navigate('/admin/dashboard')} className="text-slate-400 hover:text-slate-600">
-            <i className="fas fa-times"></i>
+    <div className="min-h-screen p-6 relative">
+      {/* Background Elements */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3"></div>
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+      </div>
+
+      <div className="max-w-5xl mx-auto glass-panel rounded-2xl overflow-hidden animate-fade-in">
+        <div className="p-6 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/30">
+          <div className="flex items-center gap-4">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${step === 1 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-slate-700 text-slate-400'}`}>1</div>
+            <div className="h-1 w-12 bg-slate-700 rounded-full">
+              <div className={`h-full bg-indigo-600 rounded-full transition-all duration-500 ${step === 2 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${step === 2 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-slate-700 text-slate-400'}`}>2</div>
+          </div>
+
+          <button onClick={() => navigate('/admin/dashboard')} className="text-slate-400 hover:text-white transition-colors">
+            <i className="fas fa-times text-xl"></i>
           </button>
         </div>
 
-        <div className="p-8">
+        <div className="p-8 md:p-12">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {step === 1 ? 'Upload Template' : 'Configure Template'}
+            </h1>
+            <p className="text-slate-400">
+              {step === 1 ? 'Choose an image or generate one with AI to get started.' : 'Fine-tune the face placement area.'}
+            </p>
+          </div>
+
           {step === 1 && (
             <div className="space-y-8">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Template Name</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Template Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                  className="w-full px-4 py-3 rounded-xl glass-input focus:outline-none text-white placeholder-slate-500"
                   placeholder="e.g. Superhero, Magazine Cover..."
                 />
-                <label className="block text-sm font-medium text-slate-700 mb-2 mt-4">Custom Link ID <span className="text-slate-400">(optional)</span></label>
+                <label className="block text-sm font-medium text-slate-300 mb-2 mt-6">Custom Link ID <span className="text-slate-500">(optional)</span></label>
                 <input
                   type="text"
                   value={customId}
                   onChange={(e) => setCustomId(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-3 rounded-xl glass-input focus:outline-none text-white placeholder-slate-500"
                   placeholder="e.g. superhero2025, mag-cover"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* File Upload */}
-                <div className="relative border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition cursor-pointer overflow-hidden">
+                <div className="relative border-2 border-dashed border-slate-600 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-800/50 hover:border-indigo-500 transition-all cursor-pointer overflow-hidden group h-80">
                   <input
                     type="file"
                     accept="image/*"
@@ -169,84 +189,101 @@ const TemplateEditor: React.FC = () => {
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     disabled={isLoading}
                   />
-                  <div className="bg-indigo-50 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                    <i className="fas fa-cloud-upload-alt text-2xl"></i>
+                  <div className="bg-slate-800 group-hover:bg-indigo-600/20 text-indigo-400 group-hover:text-indigo-300 rounded-full w-20 h-20 flex items-center justify-center mb-6 transition-colors">
+                    <i className="fas fa-cloud-upload-alt text-3xl"></i>
                   </div>
-                  <h3 className="font-medium text-slate-700">Upload Image</h3>
-                  <p className="text-xs text-slate-400 mt-1">JPG or PNG</p>
-                  
+                  <h3 className="font-semibold text-white text-lg mb-1">Upload Image</h3>
+                  <p className="text-sm text-slate-400">JPG or PNG up to 10MB</p>
+
                   {isLoading && (
-                    <div className="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center">
-                       <svg className="animate-spin h-8 w-8 text-indigo-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                       </svg>
-                       <span className="text-sm font-medium text-indigo-700">{loadingMessage}</span>
+                    <div className="absolute inset-0 bg-slate-900/90 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
+                      <svg className="animate-spin h-10 w-10 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-lg font-medium text-indigo-300 animate-pulse">{loadingMessage}</span>
                     </div>
                   )}
                 </div>
 
                 {/* AI Generate */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-8 border border-indigo-100 relative">
-                   <div className="flex items-center gap-2 mb-4">
-                     <i className="fas fa-magic text-indigo-600"></i>
-                     <h3 className="font-medium text-indigo-900">Generate with AI</h3>
-                   </div>
-                   <textarea 
-                      className="w-full p-3 rounded-lg border border-indigo-200 text-sm mb-4 h-24 resize-none focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="Describe the template... e.g. An astronaut floating in space with a clear view of the helmet visor."
-                      value={genPrompt}
-                      onChange={(e) => setGenPrompt(e.target.value)}
-                      disabled={isLoading}
-                   ></textarea>
-                   <Button onClick={handleGenerateAI} isLoading={isLoading} className="w-full" variant="primary">
-                     Generate Template
-                   </Button>
+                <div className="glass-panel border-indigo-500/30 rounded-2xl p-8 relative overflow-hidden h-80 flex flex-col">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <i className="fas fa-robot text-9xl text-indigo-500"></i>
+                  </div>
+
+                  <div className="flex items-center gap-3 mb-6 relative z-10">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg">
+                      <i className="fas fa-magic text-indigo-400"></i>
+                    </div>
+                    <h3 className="font-semibold text-white text-lg">Generate with AI</h3>
+                  </div>
+
+                  <textarea
+                    className="w-full p-4 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm mb-4 flex-grow resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    placeholder="Describe the template... e.g. An astronaut floating in space with a clear view of the helmet visor."
+                    value={genPrompt}
+                    onChange={(e) => setGenPrompt(e.target.value)}
+                    disabled={isLoading}
+                  ></textarea>
+                  <Button onClick={handleGenerateAI} isLoading={isLoading} className="w-full" variant="primary" icon="fas fa-wand-magic-sparkles">
+                    Generate Template
+                  </Button>
                 </div>
               </div>
             </div>
           )}
 
           {step === 2 && imageFile && (
-            <div className="space-y-6">
-               {/* Name Input Repeated here to ensure user enters it */}
-               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Template Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 mb-2"
-                  placeholder="e.g. Superhero, Magazine Cover..."
-                />
-                <label className="block text-sm font-medium text-slate-700 mb-2 mt-4">Custom Link ID <span className="text-slate-400">(optional)</span></label>
-                <input
-                  type="text"
-                  value={customId}
-                  onChange={(e) => setCustomId(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="e.g. superhero2025, mag-cover"
-                />
-               </div>
-
-               <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm flex items-start gap-3">
-                  <i className="fas fa-info-circle mt-1"></i>
-                  <div>
-                    <p className="font-semibold">Face Position Config</p>
-                    <p>We've automatically detected the face area. Drag and resize the box to perfect the placement.</p>
+            <div className="space-y-8 animate-fade-in">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                  <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+                    <FaceSelector
+                      imageUrl={imageFile}
+                      initialRect={faceRect}
+                      onChange={setFaceRect}
+                    />
                   </div>
-               </div>
+                </div>
 
-               <FaceSelector 
-                 imageUrl={imageFile} 
-                 initialRect={faceRect} 
-                 onChange={setFaceRect} 
-               />
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Template Name</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl glass-input focus:outline-none text-white placeholder-slate-500"
+                      placeholder="e.g. Superhero"
+                    />
+                  </div>
 
-               <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
-                 <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
-                 <Button variant="primary" onClick={handleSave}>Save Template</Button>
-               </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Custom Link ID</label>
+                    <input
+                      type="text"
+                      value={customId}
+                      onChange={(e) => setCustomId(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl glass-input focus:outline-none text-white placeholder-slate-500"
+                      placeholder="e.g. superhero2025"
+                    />
+                  </div>
+
+                  <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-200 p-4 rounded-xl text-sm flex items-start gap-3">
+                    <i className="fas fa-info-circle mt-1 text-indigo-400"></i>
+                    <div>
+                      <p className="font-semibold text-indigo-300 mb-1">Face Position Config</p>
+                      <p className="opacity-80">We've automatically detected the face area. Drag and resize the box to perfect the placement.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-4">
+                    <Button variant="primary" onClick={handleSave} className="w-full py-3 text-lg" icon="fas fa-save">Save Template</Button>
+                    <Button variant="secondary" onClick={() => setStep(1)} className="w-full" icon="fas fa-arrow-left">Back to Upload</Button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
