@@ -92,7 +92,7 @@ const TemplateView: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-6">
         <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        <h2 className="text-2xl font-semibold text-white">Loading Template...</h2>
+        <h2 className="text-2xl font-semibold text-white">Loading ...</h2>
       </div>
     );
   }
