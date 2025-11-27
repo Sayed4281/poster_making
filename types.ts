@@ -25,4 +25,7 @@ export interface ProcessingOptions {
   contrast: number;
   saturation: number;
   rotation: number;
+  scale: number; // 1 = 100%
+  x: number; // Horizontal offset
+  y: number; // Vertical offset
 }

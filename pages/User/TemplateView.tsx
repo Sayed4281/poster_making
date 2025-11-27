@@ -14,6 +14,9 @@ const TemplateView: React.FC = () => {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 
 
 
@@ -23,6 +26,9 @@ const TemplateView: React.FC = () => {
     contrast: 0,
     saturation: 0,
     rotation: 0,
+    scale: 1,
+    x: 0,
+    y: 0,
   });
 
   const isAdmin = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
@@ -128,26 +134,53 @@ const TemplateView: React.FC = () => {
               <span className="text-xs text-slate-500 mt-1 block">JPG or PNG</span>
               <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
             </label>
-            {/* Take Photo button removed as requested */}
 
             {userImage && (
               <div className="space-y-6 border-t border-slate-700/50 pt-6">
 
-
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium text-white text-sm flex items-center gap-2">
-                    <i className="fas fa-sliders-h text-indigo-400"></i> Adjustments
-                  </h3>
-                  <button
-                    onClick={() => setOptions({ brightness: 0, contrast: 0, saturation: 0, rotation: 0 })}
-                    className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1"
-                    title="Reset all adjustments"
-                  >
-                    <i className="fas fa-undo"></i> Reset
-                  </button>
-                </div>
-
                 <div className="space-y-4">
+                  {/* Zoom / Scale */}
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-2">
+                      <span>Zoom</span>
+                      <span className="text-indigo-300 font-mono">{options.scale.toFixed(1)}x</span>
+                    </div>
+                    <input
+                      type="range" min="0.1" max="3" step="0.1"
+                      value={options.scale}
+                      onChange={(e) => setOptions({ ...options, scale: Number(e.target.value) })}
+                      className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+                    />
+                  </div>
+
+                  {/* Position X/Y */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex justify-between text-xs text-slate-400 mb-2">
+                        <span>Pos X</span>
+                        <span className="text-indigo-300 font-mono">{options.x}</span>
+                      </div>
+                      <input
+                        type="range" min="-200" max="200"
+                        value={options.x}
+                        onChange={(e) => setOptions({ ...options, x: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs text-slate-400 mb-2">
+                        <span>Pos Y</span>
+                        <span className="text-indigo-300 font-mono">{options.y}</span>
+                      </div>
+                      <input
+                        type="range" min="-200" max="200"
+                        value={options.y}
+                        onChange={(e) => setOptions({ ...options, y: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <div className="flex justify-between text-xs text-slate-400 mb-2">
                       <span>Rotation</span>
@@ -196,11 +229,51 @@ const TemplateView: React.FC = () => {
               Download Image
             </Button>
           )}
+
         </div>
 
-        {/* Right Column: Preview or Cropper */}
+        {/* Right Column: Preview */}
         <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <div className="glass-panel rounded-2xl shadow-2xl border border-slate-700/50 p-2 relative min-h-[600px] flex items-center justify-center checkerboard overflow-hidden">
+          <div
+            className={`glass-panel rounded-2xl shadow-2xl border border-slate-700/50 p-2 relative min-h-[600px] flex items-center justify-center checkerboard overflow-hidden ${userImage ? 'cursor-move' : ''}`}
+            onMouseDown={(e) => {
+              if (!userImage) return;
+              e.preventDefault();
+              setIsDragging(true);
+              setDragStart({ x: e.clientX, y: e.clientY });
+              setStartPos({ x: options.x, y: options.y });
+            }}
+            onMouseMove={(e) => {
+              if (!isDragging) return;
+              const dx = e.clientX - dragStart.x;
+              const dy = e.clientY - dragStart.y;
+              setOptions({ ...options, x: startPos.x + dx, y: startPos.y + dy });
+            }}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+            onWheel={(e) => {
+              if (!userImage) return;
+              e.preventDefault();
+              const delta = -e.deltaY * 0.001;
+              const newScale = Math.min(Math.max(0.1, options.scale + delta), 3);
+              setOptions({ ...options, scale: newScale });
+            }}
+            onTouchStart={(e) => {
+              if (!userImage) return;
+              const touch = e.touches[0];
+              setIsDragging(true);
+              setDragStart({ x: touch.clientX, y: touch.clientY });
+              setStartPos({ x: options.x, y: options.y });
+            }}
+            onTouchMove={(e) => {
+              if (!isDragging) return;
+              const touch = e.touches[0];
+              const dx = touch.clientX - dragStart.x;
+              const dy = touch.clientY - dragStart.y;
+              setOptions({ ...options, x: startPos.x + dx, y: startPos.y + dy });
+            }}
+            onTouchEnd={() => setIsDragging(false)}
+          >
 
             {resultImage ? (
               <img src={resultImage} alt="Result" className="max-w-full max-h-[80vh] rounded-xl shadow-lg" />
