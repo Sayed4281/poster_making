@@ -1,3 +1,8 @@
+// Helper to get a template by customId
+export const getTemplateByCustomId = async (customId: string): Promise<Template | undefined> => {
+  const templates = await getTemplates();
+  return templates.find(t => t.customId?.trim() === customId.trim());
+};
 import { Template, Rect } from '../types';
 import { db } from './firebase';
 import { collection, getDocs, getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';

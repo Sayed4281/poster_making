@@ -7,6 +7,7 @@ import Button from '../../components/Button';
 const Dashboard: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,10 +36,13 @@ const Dashboard: React.FC = () => {
     // robustly construct the link relative to the current path
     // this handles apps served from subdirectories (like GitHub pages) correctly
     const baseUrl = window.location.href.split('#')[0].replace(/\/$/, '');
-    const url = `${baseUrl}/#/template/${id}`;
-    
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!\n\nUrl: ' + url);
+    const template = templates.find(t => t.id === id);
+    const linkId = template?.customId?.trim() ? template.customId.trim() : id;
+    const url = `${baseUrl}/#/template/${linkId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
   };
 
   const handleLogout = () => {
@@ -92,15 +96,15 @@ const Dashboard: React.FC = () => {
                 
                 <div className="p-4 grid grid-cols-2 gap-3">
                   <Button variant="secondary" onClick={() => copyLink(template.id)} className="text-sm">
-                    <i className="fas fa-link mr-1"></i> Link
+                    <i className="fas fa-link mr-1"></i> {copiedId === template.id ? 'Copied!' : 'Link'}
                   </Button>
                    <Button variant="danger" onClick={() => handleDelete(template.id)} className="text-sm">
                     <i className="fas fa-trash-alt mr-1"></i> Delete
                   </Button>
-                  <Link to={`/template/${template.id}`} className="col-span-2">
-                     <Button variant="primary" className="w-full text-sm">
-                        <i className="fas fa-eye mr-1"></i> Preview
-                     </Button>
+                  <Link to={`/template/${template.customId?.trim() ? template.customId.trim() : template.id}`} className="col-span-2">
+                    <Button variant="primary" className="w-full text-sm">
+                      <i className="fas fa-eye mr-1"></i> Preview
+                    </Button>
                   </Link>
                 </div>
               </div>
